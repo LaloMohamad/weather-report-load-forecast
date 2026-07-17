@@ -1,0 +1,100 @@
+[project]
+name = "bart26l-vorlesung"
+version = "0.0.0"
+description = "German lecture book (authoritative source; bart26k-lecture is its generated English mirror): Numerische Mathematik and Data-Driven Modeling and Optimization SoSe 2026 (safety-critical time-series forecasting)"
+requires-python = ">=3.13"
+dependencies = [
+    # Chapter 13 (live submission) and the operational scripts need the
+    # holiday-adjacency feature surface (sf2-safe 15.9.0), the exog-provider
+    # gap tolerance (16.1.0), the split tail budget (exog_max_tail_gap_hours)
+    # + bounded ENTSO-E download timeout (16.2.0), the exo_pred window-
+    # misalignment fix — a SAFETY pin, never lower it — (16.3.1: data_end
+    # clamped to the last observed target plus the exog/prediction-window
+    # alignment guard; 2026-06-05/06 incident), and the target-corruption
+    # detector/policy (16.4.0: target_qc_* knobs, target_corruption_policy,
+    # TargetCorruptionError). Floor raised to 22 for the breaking sf2-safe
+    # 22.0.0 release: warm_start_lags is now the seed lag list itself
+    # (default DEFAULT_WARM_START_LAGS, None disables); spotforecast2 8.0.0
+    # consumes the list in SpotOptimStrategy. spotoptim (>= 1.0.1:
+    # max_surrogate_points default 30) is pulled transitively via spotforecast2.
+    # Floors raised to 22.1 / 8.1 for collect-mode download_zone_loads +
+    # build_zone_qc_frame, utils.snapshot_store.SnapshotStore, coverage
+    # guards/CoverageError, check_forecast_shape, multitask.guards
+    # (sf2-safe 22.1.0); select_pacf_lags, model_selection.boundary,
+    # plots.diagnostics (sf2 8.1.0).
+    # Floor raised to 22.2 for the event-window providers: ch14 and
+    # team4_4zones_submit.py enable include_football_match_window
+    # (FootballMatchWindowProvider, bundled CC0-1.0 match-window CSV).
+    # Floor raised to 22.8 for the download-resilience layer now shipped as
+    # spotforecast2_safe.downloader.resilience (the combined-DE-total and
+    # per-zone snapshot fallback that team4_optuna_submit.py and chronos.py
+    # import as `resil`; previously scripts/_team4_resilience.py).
+    # Floor raised to 22.10 for the shared submission helpers the four ENTSO-E
+    # submitter scripts now import instead of hand-rolling each:
+    # downloader.entsoe.{load_interim, compute_submission_dates, SubmissionDates},
+    # downloader.resilience.download_combined_with_fallback, and
+    # preprocessing.coverage.assert_submission_coverage (sf2-safe 22.10.0).
+    # Floor raised to 22.10.1: assert_submission_coverage gained the
+    # corruption-policy knobs (range_mw/step_mw/qc_window_days/deviation_mw/
+    # deviation_slots/corruption_policy) the scripts pass to preserve their
+    # tuned value-sanity QC -- required for chronos (authoritative mode).
+    "spotforecast2-safe>=22.10.1",
+    "spotforecast2>=8.1.0",
+    "matplotlib",
+    "ipykernel",
+    "pyarrow",
+    # >=0.8: the client accepts `timeout` (sf2-safe 16.2.0 passes it through).
+    "entsoe-py>=0.8",
+    "numpy",
+    "pandas",
+    "lightgbm",
+    "scipy",
+    # Required by Quarto's jupyter render launcher (not transitive via ipykernel).
+    "pyyaml",
+    "nbclient",
+    "nbformat",
+    "jupyter-client",
+    # The four ENTSO-E submitter scripts import the leaderboard contract (CSV
+    # schema, team registry, deadline/authorship checks, git+gh push flow) from
+    # the importable challenge_leaderboard package instead of each duplicating it
+    # inline. Sourced from the public repo via [tool.uv.sources] below; the
+    # scripts still need a local clone (--leaderboard-root) for teams.yml,
+    # submissions/, and the git/gh working tree.
+    "challenge-leaderboard",
+]
+
+[project.optional-dependencies]
+# Chapter 17 ONLY (the unregulated Chronos-2 competitor) plus its headless
+# submitter scripts/chronos.py: keeps the foundation-model inference stack
+# (chronos-forecasting, transformers, accelerate, the HF hub client) out of
+# the default venv as a live CR-4 example. Install with
+#     uv sync --extra chronos
+# A later plain `uv sync` PRUNES the extra again (uv syncs to the requested
+# set); re-run with --extra chronos before rendering chapter 17 or running
+# scripts/chronos.py. NOTE: torch itself is NOT gated by this extra — since
+# spotforecast2 8.0.0 it arrives transitively via spotoptim[torch]
+# (TensorBoard-streamed tuning). The certified package spotforecast2-safe
+# keeps torch out of its closure; CR-4 applies there, not to this teaching
+# venv.
+chronos = [
+    # >=2.2: Chronos2Pipeline.predict_df for amazon/chronos-2; declares
+    # torch (>=2.2,<3), transformers, and accelerate.
+    # <2.3 (intentional cap, against the usual no-upper-cap policy): 2.3.0 pulls
+    # transformers 5.x and breaks the predict_df path in the `chronos-predict`
+    # cell with "TypeError: Cannot change data-type for array of references".
+    # 2.2.2 declares transformers<5, so this cap keeps the whole stack at the
+    # known-good combination (chronos 2.2.2 + transformers 4.57.x). Lift it once
+    # a chronos 2.3.x renders chapter 17 cleanly (re-test the chronos-predict
+    # cell first).
+    "chronos-forecasting>=2.2,<2.3",
+]
+
+[tool.uv]
+# Pre-release pins (e.g. 2.0.1rc2) require explicit allow.
+prerelease = "allow"
+
+[tool.uv.sources]
+# challenge_leaderboard ships only as a public GitHub repo (not on PyPI). Pin to
+# a specific commit for reproducible locks; bump the rev when the leaderboard
+# package API the scripts rely on changes.
+challenge-leaderboard = { git = "https://github.com/bartzbeielstein/challenge-leaderboard", rev = "5ca7d958ab9c9ec606d5c16e16aa7194909dff29" }

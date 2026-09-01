@@ -579,7 +579,7 @@ tinycss2==1.5.1
     # via bleach
 torch==2.12.1
     # via spotoptim
-tornado==6.5.7
+tornado==6.5.8
     # via
     #   ipykernel
     #   jupyter-client

@@ -540,7 +540,7 @@ six==1.17.0
     #   rfc3339-validator
 slicer==0.0.8
     # via shap
-soupsieve==2.8.4
+soupsieve==2.9
     # via beautifulsoup4
 spotforecast2==10.0.0
     # via bart26l-vorlesung

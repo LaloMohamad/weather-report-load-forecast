@@ -4,7 +4,7 @@ absl-py==2.4.0
     # via tensorboard
 alembic==1.18.4
     # via optuna
-anyio==4.14.0
+anyio==4.14.2
     # via
     #   httpx
     #   jupyter-server

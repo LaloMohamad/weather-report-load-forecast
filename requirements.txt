@@ -639,7 +639,7 @@ webencodings==0.5.1
     #   tinycss2
 websocket-client==1.9.0
     # via jupyter-server
-werkzeug==3.1.8
+werkzeug==3.1.9
     # via tensorboard
 widgetsnbextension==4.0.15
     # via ipywidgets
